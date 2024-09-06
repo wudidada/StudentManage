@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#include "studentaddwindow.h"
+#include "addstudentdialog.h"
 #include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -31,15 +31,17 @@ MainWindow::MainWindow(QWidget *parent)
 
     configureWidgets();
 
-    // create the mappings between the UI elements and the SQL model
-    // createMappings();
-
     // tableView->setCurrentIndex(model->index(0, 0));
     // tableView->selectRow(0);
 
     // createMenuBar();
 
-    // connect(ui->AddButton, &QPushButton::clicked, this, &MainWindow::showAddWindow);
+    connect(gradeView, &QAbstractItemView::clicked, this, &MainWindow::showClassStudents);
+    connect(gradeView, &QAbstractItemView::activated, this, &MainWindow::showClassStudents);
+
+    connect(addButton, &QPushButton::clicked, this, &MainWindow::showAddWindow);
+    connect(deleteButton, &QPushButton::clicked, this, &MainWindow::deleteStudent);
+    connect(editButton, &QPushButton::clicked, this, &MainWindow::editStudent);
 }
 
 void MainWindow::createLayout()
@@ -125,19 +127,14 @@ QGroupBox *MainWindow::createButtonGroupBox()
 {
     QGroupBox *box = new QGroupBox(tr("操作"));
 
-    QPushButton *addButton = new QPushButton(tr("添加"));
-    QPushButton *deleteButton = new QPushButton(tr("删除"));
-    QPushButton *quitButton = new QPushButton(tr("退出"));
-
-    connect(addButton, &QPushButton::clicked, this, &MainWindow::showAddWindow);
-    connect(deleteButton, &QPushButton::clicked, this, &MainWindow::showAddWindow);
-    connect(quitButton, &QPushButton::clicked, this, &MainWindow::showAddWindow);
+    addButton = new QPushButton(tr("添加"));
+    deleteButton = new QPushButton(tr("删除"));
+    editButton = new QPushButton(tr("编辑"));
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(addButton);
     layout->addWidget(deleteButton);
-    layout->addWidget(quitButton);
-    layout->addStretch(1);
+    layout->addWidget(editButton = new QPushButton(tr("编辑")));
     box->setLayout(layout);
 
     return box;
@@ -198,11 +195,6 @@ void MainWindow::configureWidgets()
     gradeTreeModel->setHorizontalHeaderLabels({tr("年级")});
     gradeView->setModel(gradeTreeModel);
 
-    connect(gradeView, &QAbstractItemView::clicked,
-            this, &MainWindow::showClassStudents);
-    connect(gradeView, &QAbstractItemView::activated,
-            this, &MainWindow::showClassStudents);
-
     // gradeView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::);
 
     // connect(gradeView, &QTableView::clicked,
@@ -241,8 +233,76 @@ void MainWindow::createMenuBar()
 
 void MainWindow::showAddWindow()
 {
-    QWidget *addWindow = new StudentAddWindow(this);
-    addWindow->show();
+    QDialog *dialog = new AddStudentDialog(gradeModel, this);
+    int accepted = dialog->exec();
+    if (accepted == QDialog::Accepted)
+    {
+        qDebug() << "Accepted";
+        updateClassModel();
+    }
+    else
+    {
+        qDebug() << "Rejected";
+    }
+}
+
+void MainWindow::updateClassModel()
+{
+    classModel->loadData();
+}
+
+void MainWindow::deleteStudent()
+{
+    const QModelIndexList selection = classView->selectionModel()->selectedRows(2);
+
+    if (selection.isEmpty())
+    {
+        return;
+    }
+
+    const QModelIndex &index = selection.at(0);
+
+    int row = index.row();
+    if (QMessageBox::question(this, tr("删除学生"), tr("确定删除该学生吗？"), QMessageBox::Yes | QMessageBox::No) == QMessageBox::No)
+    {
+        return;
+    }
+
+    QSqlQuery query;
+    query.prepare("DELETE FROM students WHERE id = :id");
+    query.bindValue(":id", index.data().toInt());
+    if (query.exec())
+    {
+        updateClassModel();
+    }
+    else
+    {
+        showError(tr("删除学生失败"), query.lastError().text());
+    }
+    updateClassModel();
+}
+
+void MainWindow::editStudent()
+{
+    const QModelIndexList selection = classView->selectionModel()->selectedRows(0);
+
+    if (selection.isEmpty())
+    {
+        return;
+    }
+
+    const QModelIndex &index = selection.at(0);
+
+    int row = index.row();
+
+    // 姓名 性别 学号 班级
+
+    QString name = index.data().toString();
+    QString gender = index.siblingAtColumn(1).data().toString();
+    int id = index.siblingAtColumn(2).data().toInt();
+    QString className = index.siblingAtColumn(3).data().toString();
+
+    // qDebug() << "edit student: " << name << ", gender = " << gender << ", id = " << id << ", class = " << className;
 }
 
 void MainWindow::showError(const QString &title, const QString &message)

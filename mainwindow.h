@@ -16,6 +16,9 @@ public:
 
 private slots:
     void showAddWindow();
+    void updateClassModel();
+    void deleteStudent();
+    void editStudent();
 
 private:
     int classGradeIdx = 0, classNameIdx = 0, studentGradeIdx = 0, studentClassIdx = 0;
@@ -34,6 +37,10 @@ private:
     QGroupBox *createGradeGroupBox();
     QGroupBox *createClassGroupBox();
     QGroupBox *createButtonGroupBox();
+
+    QPushButton *addButton = nullptr;
+    QPushButton *deleteButton = nullptr;
+    QPushButton *editButton = nullptr;
 
     void createLayout();
     void createModel();
