@@ -6,7 +6,6 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    // create the central widget for the window
     window = new QWidget(this);
     setCentralWidget(window);
 
@@ -14,7 +13,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     createModel();
 
-    // Populate the model
     if (!gradeModel->select())
     {
         showError(tr("初始化数据库失败"), gradeModel->lastError().text());
@@ -23,19 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     createTreeModel();
 
-    // 打印gradeModel 行列数
-    qDebug() << "gradeModel->rowCount() = " << gradeModel->rowCount();
-    qDebug() << "gradeModel->columnCount() = " << gradeModel->columnCount();
-    // 打印classModel 行列数
-    qDebug() << "classModel->rowCount() = " << classModel->rowCount();
-    qDebug() << "classModel->columnCount() = " << classModel->columnCount();
-
     configureWidgets();
-
-    // tableView->setCurrentIndex(model->index(0, 0));
-    // tableView->selectRow(0);
-
-    // createMenuBar();
 
     connect(gradeView, &QAbstractItemView::clicked, this, &MainWindow::showClassStudents);
     connect(gradeView, &QAbstractItemView::activated, this, &MainWindow::showClassStudents);
@@ -51,27 +37,17 @@ void MainWindow::createLayout()
     QGroupBox *classes = createClassGroupBox();
     QGroupBox *buttons = createButtonGroupBox();
 
-    // artistView->setCurrentIndex(0);
-    // Dialog::setInitialAlbumAndArtistId(model->rowCount(), artistView->count());
-
-    // connect(model, &QSqlRelationalTableModel::rowsInserted,
-    // this, &MainWindow::adjustHeader);
-    // connect(model, &QSqlRelationalTableModel::rowsRemoved,
-    // this, &MainWindow::adjustHeader);
-
     QGridLayout *layout = new QGridLayout;
-    layout->addWidget(grades, 0, 0, 2, 1);
-    layout->addWidget(buttons, 0, 1);
-    layout->addWidget(classes, 1, 1);
-
-    layout->setColumnStretch(1, 1);
+    layout->addWidget(grades, 0, 0, 4, 1);
+    layout->addWidget(buttons, 0, 1, 1, 3);
+    layout->addWidget(classes, 1, 1, 3, 3);
 
     QWidget *widget = new QWidget;
     widget->setLayout(layout);
     setCentralWidget(widget);
     createMenuBar();
 
-    // resize(850, 400);
+    resize(850, 400);
     setWindowTitle(tr("学生信息管理系统"));
 }
 
@@ -84,8 +60,8 @@ QGroupBox *MainWindow::createGradeGroupBox()
     gradeView->setSelectionBehavior(QAbstractItemView::SelectRows);
     gradeView->setSelectionMode(QAbstractItemView::SingleSelection);
     gradeView->setAlternatingRowColors(true);
-    // gradeView->setModel(gradeModel);
-    // adjustHeader();
+
+    box->setFixedWidth(150);
 
     QLocale locale = gradeView->locale();
     locale.setNumberOptions(QLocale::OmitGroupSeparator);
@@ -111,7 +87,6 @@ QGroupBox *MainWindow::createClassGroupBox()
     classView->verticalHeader()->hide();
     classView->setAlternatingRowColors(true);
     classView->setModel(classModel);
-    // adjustHeader();
 
     QLocale locale = classView->locale();
     locale.setNumberOptions(QLocale::OmitGroupSeparator);
@@ -128,16 +103,17 @@ QGroupBox *MainWindow::createButtonGroupBox()
 {
     QGroupBox *box = new QGroupBox(tr("操作"));
 
+    box->setFixedHeight(60);
+
     addButton = new QPushButton(tr("添加"));
     deleteButton = new QPushButton(tr("删除"));
     editButton = new QPushButton(tr("编辑"));
 
-    QVBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget(addButton);
-    layout->addWidget(deleteButton);
-    layout->addWidget(editButton = new QPushButton(tr("编辑")));
+    QHBoxLayout *layout = new QHBoxLayout;
+    layout->addWidget(addButton, 0, Qt::AlignRight);
+    layout->addWidget(deleteButton, 0, Qt::AlignRight);
+    layout->addWidget(editButton, 0, Qt::AlignRight);
     box->setLayout(layout);
-
     return box;
 }
 
@@ -150,11 +126,7 @@ void MainWindow::createModel()
     classGradeIdx = gradeModel->fieldIndex("grade");
     classNameIdx = gradeModel->fieldIndex("name");
 
-    // Set the relations to the other database tables
     gradeModel->setRelation(classGradeIdx, QSqlRelation("grades", "grade", "name"));
-
-    // // Set the localised header captions
-    // gradeModel->setSort(classGradeIdx, Qt::AscendingOrder);
 
     classModel = new StudentQueryModel(classView);
     classModel->loadData();
@@ -196,14 +168,10 @@ void MainWindow::configureWidgets()
     gradeTreeModel->setHorizontalHeaderLabels({tr("年级")});
     gradeView->setModel(gradeTreeModel);
 
-    // gradeView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::);
-
-    // connect(gradeView, &QTableView::clicked,
-    //         this, &MainWindow::showClassStudents);
-    // connect(gradeView, &QTableView::activated,
-    //         this, &MainWindow::showClassStudents);
-
     classView->setModel(classModel);
+
+    // classView表格大小调整
+    classView->resizeColumnsToContents();
 }
 
 void MainWindow::showClassStudents(const QModelIndex &index)
@@ -230,6 +198,26 @@ void MainWindow::showClassStudents(const QModelIndex &index)
 
 void MainWindow::createMenuBar()
 {
+    QAction *addAction = new QAction(tr("添加学生"), this);
+    QAction *deleteAction = new QAction(tr("删除学生"), this);
+    QAction *editAction = new QAction(tr("编辑学生信息"), this);
+    QAction *quitAction = new QAction(tr("退出"), this);
+
+    QMenu *operationMenu = menuBar()->addMenu(tr("操作"));
+    operationMenu->addAction(addAction);
+    operationMenu->addAction(deleteAction);
+    operationMenu->addAction(editAction);
+    operationMenu->addSeparator();
+    operationMenu->addAction(quitAction);
+
+    connect(addAction, &QAction::triggered,
+            this, &MainWindow::showAddWindow);
+    connect(deleteAction, &QAction::triggered,
+            this, &MainWindow::deleteStudent);
+    connect(editAction, &QAction::triggered,
+            this, &MainWindow::editStudent);
+    connect(quitAction, &QAction::triggered,
+            qApp, &QCoreApplication::quit);
 }
 
 void MainWindow::showAddWindow()
