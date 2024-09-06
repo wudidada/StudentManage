@@ -19,20 +19,26 @@ public:
 
 private slots:
     void addStudent();
+protected slots:
+    void updateClassEditor(const QString &grade);
 
-private:
-    QSqlRelationalTableModel *model;
-
-    QGroupBox *createInputWidgets();
-    QDialogButtonBox *createButtons();
-
+protected:
     QLineEdit *nameEditor;
     QLineEdit *idEditor;
     QComboBox *genderEditor;
     QComboBox *gradeEditor;
-    QLineEdit *classEditor;
+    QComboBox *classEditor;
 
     QPushButton *submitButton;
+
+private:
+    QMap<QString, QList<QPair<int, QString>>> *gradeClassMap;
+    QSqlRelationalTableModel *model;
+
+    QMap<QString, QList<QPair<int, QString>>> *createGradeClassMap();
+    QGroupBox *createInputWidgets();
+    QDialogButtonBox *createButtons();
+
     QPushButton *closeButton;
 };
 

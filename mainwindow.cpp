@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "addstudentdialog.h"
+#include "editstudentdialog.h"
 #include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -297,12 +298,23 @@ void MainWindow::editStudent()
 
     // 姓名 性别 学号 班级
 
-    QString name = index.data().toString();
-    QString gender = index.siblingAtColumn(1).data().toString();
+    const QString &name = index.data().toString();
+    const QString &gender = index.siblingAtColumn(1).data().toString();
     int id = index.siblingAtColumn(2).data().toInt();
-    QString className = index.siblingAtColumn(3).data().toString();
+    const QString &className = index.siblingAtColumn(3).data().toString();
+    const QString &grade = index.siblingAtColumn(4).data().toString();
 
-    // qDebug() << "edit student: " << name << ", gender = " << gender << ", id = " << id << ", class = " << className;
+    QDialog *dialog = new EditStudentDialog(name, gender, id, grade, className, this);
+    int accepted = dialog->exec();
+    if (accepted == QDialog::Accepted)
+    {
+        qDebug() << "Accepted";
+        updateClassModel();
+    }
+    else
+    {
+        qDebug() << "Rejected";
+    }
 }
 
 void MainWindow::showError(const QString &title, const QString &message)

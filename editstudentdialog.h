@@ -16,25 +16,10 @@ class EditStudentDialog : public AddStudentDialog
     Q_OBJECT
 
 public:
-    EditStudentDialog(QSqlRelationalTableModel *classModel, QWidget *parent = nullptr);
+    EditStudentDialog(const QString &name, const QString &gender, int id, const QString &grade, const QString &className, QWidget *parent = nullptr);
 
 private slots:
-    void editStudent();
-
-private:
-    QSqlRelationalTableModel *model;
-
-    QGroupBox *createInputWidgets();
-    QDialogButtonBox *createButtons();
-
-    QLineEdit *nameEditor;
-    QLineEdit *idEditor;
-    QComboBox *genderEditor;
-    QComboBox *gradeEditor;
-    QLineEdit *classEditor;
-
-    QPushButton *submitButton;
-    QPushButton *closeButton;
+    void commitEdit();
 };
 
 #endif // EDITSTUDENTDIALOG_H

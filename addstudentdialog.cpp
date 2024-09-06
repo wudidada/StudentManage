@@ -3,10 +3,10 @@
 #include <QtSql>
 #include <QtWidgets>
 
-AddStudentDialog::AddStudentDialog(QSqlRelationalTableModel *classModel, QWidget *parent)
+AddStudentDialog::AddStudentDialog(QSqlRelationalTableModel *gradeModel, QWidget *parent)
     : QDialog(parent)
 {
-    model = classModel;
+    model = gradeModel;
 
     QGroupBox *inputWidgetBox = createInputWidgets();
     QDialogButtonBox *buttonBox = createButtons();
@@ -20,10 +20,14 @@ AddStudentDialog::AddStudentDialog(QSqlRelationalTableModel *classModel, QWidget
 
     connect(submitButton, &QPushButton::clicked, this, &AddStudentDialog::addStudent);
     connect(closeButton, &QPushButton::clicked, this, &AddStudentDialog::close);
+
+    connect(gradeEditor, &QComboBox::currentTextChanged, this, &AddStudentDialog::updateClassEditor);
 }
 
 QGroupBox *AddStudentDialog::createInputWidgets()
 {
+    gradeClassMap = createGradeClassMap();
+
     QGroupBox *box = new QGroupBox(tr("输入学生信息"));
 
     QLabel *nameLabel = new QLabel(tr("姓名:"));
@@ -36,16 +40,17 @@ QGroupBox *AddStudentDialog::createInputWidgets()
     idEditor = new QLineEdit;
     genderEditor = new QComboBox;
     gradeEditor = new QComboBox;
-    classEditor = new QLineEdit;
+    classEditor = new QComboBox;
 
     genderEditor->addItem(tr("男"));
     genderEditor->addItem(tr("女"));
-    gradeEditor->addItem(tr("一年级"));
-    gradeEditor->addItem(tr("二年级"));
-    gradeEditor->addItem(tr("三年级"));
-    gradeEditor->addItem(tr("四年级"));
-    gradeEditor->addItem(tr("五年级"));
-    gradeEditor->addItem(tr("六年级"));
+
+    for (auto it = gradeClassMap->begin(); it != gradeClassMap->end(); it++)
+    {
+        gradeEditor->addItem(it.key());
+    }
+
+    updateClassEditor(gradeEditor->currentText());
 
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(nameLabel, 0, 0);
@@ -63,7 +68,63 @@ QGroupBox *AddStudentDialog::createInputWidgets()
     return box;
 }
 
-QDialogButtonBox *AddStudentDialog::createButtons()
+QMap<QString, QList<QPair<int, QString>>> *AddStudentDialog::createGradeClassMap()
+{
+    QMap<QString, QList<QPair<int, QString>>> *map = new QMap<QString, QList<QPair<int, QString>>>();
+
+    QSqlQueryModel queryModel;
+    queryModel.setQuery("SELECT grades.name 年级, class.id class_id, class.name 班级 "
+                        "FROM class "
+                        "LEFT JOIN grades "
+                        "ON class.grade = grades.grade");
+
+    if (queryModel.lastError().isValid())
+    {
+        qDebug() << "Error: Failed to query data." << queryModel.lastError();
+        return map;
+    }
+
+    // 从view中获取数据
+    for (int i = 0; i < queryModel.rowCount(); i++)
+    {
+        QSqlRecord record = queryModel.record(i);
+
+        QString gradeName = record.value("年级").toString();
+        QString className = record.value("班级").toString();
+        int classId = record.value("class_id").toInt();
+
+        // qDebug() << "gradeName: " << gradeName << " className: " << className << " classId: " << classId;
+
+        if (!map->contains(gradeName))
+        {
+            QList<QPair<int, QString>> list;
+            list.append(qMakePair(classId, className));
+            map->insert(gradeName, list);
+        }
+        else
+        {
+            QList<QPair<int, QString>> list = map->value(gradeName);
+            list.append(qMakePair(classId, className));
+            map->insert(gradeName, list);
+        }
+    }
+
+    return map;
+}
+
+void AddStudentDialog::updateClassEditor(const QString &grade)
+{
+    classEditor->clear();
+
+    QList<QPair<int, QString>> list = gradeClassMap->value(grade);
+    for (int i = 0; i < list.size(); i++)
+    {
+        classEditor->addItem(list.at(i).second, list.at(i).first);
+    }
+}
+
+QDialogButtonBox *
+AddStudentDialog::createButtons()
 {
     submitButton = new QPushButton(tr("提交"));
     closeButton = new QPushButton(tr("关闭"));
@@ -83,7 +144,7 @@ void AddStudentDialog::addStudent()
     QString name = nameEditor->text();
     int id = idEditor->text().toInt();
     QString gender = genderEditor->currentText();
-    int classId = classEditor->text().toInt();
+    int classId = classEditor->currentData().toInt();
 
     qDebug() << "name: " << name << " id: " << id << " gender: " << gender << " class: " << classId;
 
