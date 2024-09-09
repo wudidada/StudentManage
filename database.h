@@ -12,7 +12,8 @@
 static bool createConnection()
 {
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(":memory:");
+    // db.setDatabaseName(":memory:");
+    db.setDatabaseName("student.db");
     if (!db.open())
     {
         QMessageBox::critical(nullptr, QObject::tr("Cannot open database"),
@@ -26,6 +27,13 @@ static bool createConnection()
     }
 
     QSqlQuery query;
+
+    // 如果表存在则略过
+    if (db.tables().contains("grades", Qt::CaseInsensitive))
+    {
+        qDebug() << "Table grades already exists";
+        return true;
+    }
 
     query.exec("create table grades (grade int primary key,"
                "name varchar(20)) ");
