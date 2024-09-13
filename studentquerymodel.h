@@ -9,9 +9,9 @@ class StudentQueryModel : public QSqlQueryModel
 public:
     using QSqlQueryModel::QSqlQueryModel;
     void sort(int column, Qt::SortOrder order);
-    bool loadData();
-    bool loadClassData(QString className);
-    bool loadGradeData(QString gradeName);
+    void loadData();
+    void loadClassData(QString className);
+    void loadGradeData(QString gradeName);
     void searchByName(const QString &name);
     void searchById(const int id);
 

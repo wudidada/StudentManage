@@ -31,19 +31,22 @@ void StudentQueryModel::sort(int column, Qt::SortOrder order)
     loadData();
 }
 
-bool StudentQueryModel::loadData()
+void StudentQueryModel::loadData()
 {
     setQuery(fullQueryStr());
-    return lastError().type() == QSqlError::NoError;
+    if (lastError().type() != QSqlError::NoError)
+    {
+        qDebug() << lastError().text();
+    }
 }
 
-bool StudentQueryModel::loadClassData(QString className)
+void StudentQueryModel::loadClassData(QString className)
 {
     filterStr = QString(" WHERE 班级 = '%1' ").arg(className);
     loadData();
 }
 
-bool StudentQueryModel::loadGradeData(QString gradeName)
+void StudentQueryModel::loadGradeData(QString gradeName)
 {
     filterStr = QString(" WHERE 年级 = '%1' ").arg(gradeName);
     loadData();
