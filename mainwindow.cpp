@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "addstudentdialog.h"
 #include "editstudentdialog.h"
+#include "searchstudentdialog.h"
 #include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -29,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(addButton, &QPushButton::clicked, this, &MainWindow::showAddWindow);
     connect(deleteButton, &QPushButton::clicked, this, &MainWindow::deleteStudent);
     connect(editButton, &QPushButton::clicked, this, &MainWindow::editStudent);
+    connect(searchButton, &QPushButton::clicked, this, &MainWindow::showSearchWindow);
 }
 
 void MainWindow::createLayout()
@@ -108,11 +110,13 @@ QGroupBox *MainWindow::createButtonGroupBox()
     addButton = new QPushButton(tr("添加"));
     deleteButton = new QPushButton(tr("删除"));
     editButton = new QPushButton(tr("编辑"));
+    searchButton = new QPushButton(tr("搜索"));
 
     QHBoxLayout *layout = new QHBoxLayout;
     layout->addWidget(addButton, 0, Qt::AlignRight);
     layout->addWidget(deleteButton, 0, Qt::AlignRight);
     layout->addWidget(editButton, 0, Qt::AlignRight);
+    layout->addWidget(searchButton, 0, Qt::AlignRight);
     box->setLayout(layout);
     return box;
 }
@@ -201,12 +205,14 @@ void MainWindow::createMenuBar()
     QAction *addAction = new QAction(tr("添加学生"), this);
     QAction *deleteAction = new QAction(tr("删除学生"), this);
     QAction *editAction = new QAction(tr("编辑学生信息"), this);
+    QAction *searchAction = new QAction(tr("搜索学生"), this);
     QAction *quitAction = new QAction(tr("退出"), this);
 
     QMenu *operationMenu = menuBar()->addMenu(tr("操作"));
     operationMenu->addAction(addAction);
     operationMenu->addAction(deleteAction);
     operationMenu->addAction(editAction);
+    operationMenu->addAction(searchAction);
     operationMenu->addSeparator();
     operationMenu->addAction(quitAction);
 
@@ -216,6 +222,8 @@ void MainWindow::createMenuBar()
             this, &MainWindow::deleteStudent);
     connect(editAction, &QAction::triggered,
             this, &MainWindow::editStudent);
+    connect(searchAction, &QAction::triggered,
+            this, &MainWindow::showSearchWindow);
     connect(quitAction, &QAction::triggered,
             qApp, &QCoreApplication::quit);
 }
@@ -233,6 +241,12 @@ void MainWindow::showAddWindow()
     {
         qDebug() << "Rejected";
     }
+}
+
+void MainWindow::showSearchWindow()
+{
+    QDialog *dialog = new SearchStudentDialog(this);
+    dialog->exec();
 }
 
 void MainWindow::updateClassModel()

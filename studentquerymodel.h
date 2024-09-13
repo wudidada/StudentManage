@@ -12,6 +12,8 @@ public:
     bool loadData();
     bool loadClassData(QString className);
     bool loadGradeData(QString gradeName);
+    void searchByName(const QString &name);
+    void searchById(const int id);
 
 private:
     const QString queryStr = "SELECT students.name 姓名, gender 性别, students.id 学号, class.name 班级, grades.name 年级 "

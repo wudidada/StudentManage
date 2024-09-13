@@ -29,6 +29,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         addstudentdialog.cpp
         editstudentdialog.h
         editstudentdialog.cpp
+        searchstudentdialog.h
+        searchstudentdialog.cpp
         database.h
     )
 # Define target properties for Android with Qt 6 as:

@@ -16,6 +16,7 @@ public:
 
 private slots:
     void showAddWindow();
+    void showSearchWindow();
     void updateClassModel();
     void deleteStudent();
     void editStudent();
@@ -41,6 +42,7 @@ private:
     QPushButton *addButton = nullptr;
     QPushButton *deleteButton = nullptr;
     QPushButton *editButton = nullptr;
+    QPushButton *searchButton = nullptr;
 
     void createLayout();
     void createModel();

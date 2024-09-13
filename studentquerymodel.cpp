@@ -53,3 +53,15 @@ QString StudentQueryModel::fullQueryStr() const
 {
     return queryStr + filterStr + sortStr;
 }
+
+void StudentQueryModel::searchByName(const QString &name)
+{
+    filterStr = QString(" WHERE 姓名 LIKE '%%1%' ").arg(name);
+    loadData();
+}
+
+void StudentQueryModel::searchById(int id)
+{
+    filterStr = QString(" WHERE 学号 = %1 ").arg(id);
+    loadData();
+}
