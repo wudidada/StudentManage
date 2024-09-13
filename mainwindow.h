@@ -20,9 +20,11 @@ private slots:
     void updateClassModel();
     void deleteStudent();
     void editStudent();
+    void handleTableSelection(const QItemSelection &selected, const QItemSelection &deselected);
 
 private:
-    int classGradeIdx = 0, classNameIdx = 0, studentGradeIdx = 0, studentClassIdx = 0;
+    int classGradeIdx = 0,
+        classNameIdx = 0, studentGradeIdx = 0, studentClassIdx = 0;
 
     QWidget *window = nullptr;
 
@@ -53,5 +55,6 @@ private:
     void showClassStudents(const QModelIndex &index);
 
     void showError(const QString &title, const QString &message);
+    void setButtonsEnabled(bool enable);
 };
 #endif // MAINWINDOW_H

@@ -31,6 +31,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(deleteButton, &QPushButton::clicked, this, &MainWindow::deleteStudent);
     connect(editButton, &QPushButton::clicked, this, &MainWindow::editStudent);
     connect(searchButton, &QPushButton::clicked, this, &MainWindow::showSearchWindow);
+
+    // classView中选中一行时，deleteButton才可用
+    connect(classView->selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::handleTableSelection);
 }
 
 void MainWindow::createLayout()
@@ -105,8 +108,6 @@ QGroupBox *MainWindow::createButtonGroupBox()
 {
     QGroupBox *box = new QGroupBox(tr("操作"));
 
-    box->setFixedHeight(60);
-
     addButton = new QPushButton(tr("添加"));
     deleteButton = new QPushButton(tr("删除"));
     editButton = new QPushButton(tr("编辑"));
@@ -118,6 +119,9 @@ QGroupBox *MainWindow::createButtonGroupBox()
     layout->addWidget(editButton, 0, Qt::AlignRight);
     layout->addWidget(searchButton, 0, Qt::AlignRight);
     box->setLayout(layout);
+
+    box->setFixedHeight(addButton->sizeHint().height() * 2 + 10);
+    setButtonsEnabled(false);
     return box;
 }
 
@@ -194,10 +198,7 @@ void MainWindow::showClassStudents(const QModelIndex &index)
         classModel->loadGradeData(gradeName);
     }
 
-    if (gradeName.isEmpty() || className.isEmpty())
-    {
-        return;
-    }
+    setButtonsEnabled(false);
 }
 
 void MainWindow::createMenuBar()
@@ -277,6 +278,7 @@ void MainWindow::deleteStudent()
     if (query.exec())
     {
         updateClassModel();
+        setButtonsEnabled(false);
     }
     else
     {
@@ -319,7 +321,19 @@ void MainWindow::editStudent()
     }
 }
 
+void MainWindow::handleTableSelection(const QItemSelection &selected, const QItemSelection &deselected)
+{
+    // qDebug() << selected.indexes() << " <- " << deselected.indexes();
+    setButtonsEnabled(true);
+}
+
 void MainWindow::showError(const QString &title, const QString &message)
 {
     QMessageBox::critical(this, title, message);
+}
+
+void MainWindow::setButtonsEnabled(bool enable)
+{
+    deleteButton->setEnabled(enable);
+    editButton->setEnabled(enable);
 }

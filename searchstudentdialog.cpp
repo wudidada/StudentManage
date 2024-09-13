@@ -17,10 +17,9 @@ SearchStudentDialog::SearchStudentDialog(QWidget *parent)
     model = new StudentQueryModel(resultView);
     model->loadData();
     resultView->setModel(model);
-
     setWindowTitle(tr("搜索学生"));
 
-    resize(resultView->horizontalHeader()->length(), 400);
+    resize(resultView->horizontalHeader()->length() + 100, 400);
 
     connect(searchByIdButton, &QPushButton::clicked, this, &SearchStudentDialog::searchById);
     connect(searchByNameButton, &QPushButton::clicked, this, &SearchStudentDialog::searchByName);
