@@ -1,4 +1,4 @@
-name: CMake
+name: Build
 
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
         # Installs the Qt SDK
         uses: jurplel/install-qt-action@v2
         with:
-          version: "6.7.0.2"
+          version: "6.7.*"
           host: "windows"
           target: "desktop"
 
